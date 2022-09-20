@@ -34,13 +34,37 @@ TFuncionario *leFuncioanario(FILE *in)
     return funcionario;
 }
 
+int Existe(int valores[],int tam, int valor){
+    for(int i = 0;i<tam;i++){
+        if(valores[i]==valor)
+            return 0;
+    }
+    return 1;
+}
+
+int GeraAleatorios(){
+    srand(time(NULL));
+
+    int num;
+    int numeros[100];
+    for(int i=0;i<100;i++){
+        num = rand() % 100;
+        while(Existe(numeros,i,num)==0){
+            num = rand() % 100;
+        }
+        numeros[i] = num;
+        return num;
+    }
+
+}
+
 void criaBaseDados(FILE *arq, int numFuncioanrio)
 {
-
+   srand(time(NULL));
     for(int i=1; i<=numFuncioanrio; i++)
     {
         TFuncionario funcionario;
-        funcionario.codigo=i;
+        funcionario.codigo= GeraAleatorios();
         sprintf(funcionario.nome, "Funcionario %d", i);
         sprintf(funcionario.cpf, "111.111.111-11");
         sprintf(funcionario.dataNascimento, "08/08/1996");
@@ -124,4 +148,61 @@ TFuncionario *buscaBinaria(int codigo, FILE *arq, int tamanho)
     printf("O tempo de execucao da busca binaria foi: %f segundos\n", tempoExecucao);
     printf("O numero de comparacoes feitas foi: %d\n", numeroComparacoes);
     return NULL;
+}
+void OrdenarArrayKeySorting(TKeySorting *array, int quantidadeFuncionario)
+{
+
+  for (int i = 0; i < quantidadeFuncionario; i++)
+  {
+    for (int j = i + 1; j < quantidadeFuncionario; j++)
+    {
+      if (array[i].cod > array[j].cod)
+      {
+        TKeySorting aux = array[i];
+        array[i] = array[j];
+        array[j] = aux;
+      }
+    }
+  }
+}
+
+void KeySorting(FILE *arq, FILE *arquivoOrdenado, int quantidadeFuncionario)
+{
+  printf("\nReaizando metodo do Key Sorting ... \n");
+
+  clock_t comecoTime, fimTime;
+  double tempoDeExecucao = 0.0;
+
+  comecoTime = clock();
+
+  TKeySorting array[quantidadeFuncionario];
+
+  rewind(arq);
+
+  for (int i = 0; i < quantidadeFuncionario; i++)
+  {
+    fseek(arq, i * sizeof(TFuncionario), SEEK_SET);
+    array[i].RRN = ftell(arq);
+   TFuncionario *funcionario = leFuncioanario(arq);
+    array[i].cod = funcionario->codigo;
+  }
+
+  OrdenarArrayKeySorting(array, quantidadeFuncionario);
+
+  rewind(arq);
+
+  for (int i = 0; i < quantidadeFuncionario; i++)
+  {
+
+    fseek(arq, array[i].RRN, SEEK_SET);
+    TFuncionario *funcionario = leFuncioanario(arq);
+
+    fseek(arquivoOrdenado, i * sizeof(TFuncionario), SEEK_SET);
+    salva(funcionario, arquivoOrdenado);
+  }
+
+  printf("Termino do KeySorting!\n");
+  fimTime = clock();
+  tempoDeExecucao += (double)(fimTime - comecoTime) / CLOCKS_PER_SEC;
+  printf("\nTempo gasto na execucao do Key Sorting: %.8f s\n", tempoDeExecucao);
 }
